@@ -113,4 +113,36 @@ public class LivroRepository {
         }
         return livros;
     }
+        // Altera UM livro. O WHERE id = ? garante que só essa linha muda.
+    public void atualizar(Livro livro) {
+        String sql = "UPDATE livro SET titulo = ?, autor = ?, ano = ?, preco = ? WHERE id = ?";
+        jdbcTemplate.update(sql,
+                livro.getTitulo(),
+                livro.getAutor(),
+                livro.getAno(),
+                livro.getPreco(),
+                livro.getId());
+    }
+
+    // Remove UM livro. Sem WHERE, apagaria a tabela inteira!
+    public void excluir(Long id) {
+        String sql = "DELETE FROM livro WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+        // Altera UM livro. O WHERE id = ? garante que só essa linha muda.
+    public void atualizar(Livro livro) {
+        String sql = "UPDATE livro SET titulo = ?, autor = ?, ano = ?, preco = ? WHERE id = ?";
+        jdbcTemplate.update(sql,
+                livro.getTitulo(),
+                livro.getAutor(),
+                livro.getAno(),
+                livro.getPreco(),
+                livro.getId());
+    }
+
+    // Remove UM livro. Sem WHERE, apagaria a tabela inteira!
+    public void excluir(Long id) {
+        String sql = "DELETE FROM livro WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
 }
