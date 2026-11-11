@@ -1,5 +1,7 @@
 package br.com.estanteweb;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 
 @Controller
@@ -159,5 +159,74 @@ public class LivroController {
     @GetMapping("/livros/quem-acessa")
     public String quemAcessa(@RequestHeader("User-Agent") String userAgent){
         return "Esse acesso veio de: " + userAgent;
+    }
+        // GET só MOSTRA: formulário de correção já preenchido
+    @GetMapping("/livros/{id}/editar")
+    public String editar(@PathVariable Long id, Model model) {
+        Livro livro = repositorioLivro.buscarPorId(id);
+
+        if (livro == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        model.addAttribute("livro", livro);
+        return "livro-editar";
+    }
+
+    // POST MUDA: o {id} diz QUAL livro, os @RequestParam dizem O QUE gravar
+    @PostMapping("/livros/{id}")
+    public String salvarEdicao(@PathVariable Long id,
+                               @RequestParam String titulo,
+                               @RequestParam String autor,
+                               @RequestParam int ano,
+                               @RequestParam double preco,
+                               Model model) {
+
+        if (repositorioLivro.buscarPorId(id) == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        Livro livro = new Livro();
+        livro.setId(id);
+        livro.setTitulo(titulo);
+        livro.setAutor(autor);
+        livro.setAno(ano);
+        livro.setPreco(preco);
+
+        // mesma validação do cadastro
+        if (titulo.isBlank() || autor.isBlank() || preco <= 0) {
+            model.addAttribute("erro", "Informe título e autor e um preço maior que zero.");
+            model.addAttribute("livro", livro); // devolve o que o usuário digitou
+            return "livro-editar";
+        }
+
+        repositorioLivro.atualizar(livro);
+
+        // redirect: evita repetir a alteração ao atualizar a página (F5)
+        return "redirect:/livros/" + id;
+    }
+
+    // GET só PERGUNTA: mostra qual livro está prestes a ser removido
+    @GetMapping("/livros/{id}/excluir")
+    public String confirmarExclusao(@PathVariable Long id, Model model) {
+        Livro livro = repositorioLivro.buscarPorId(id);
+
+        if (livro == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        model.addAttribute("livro", livro);
+        return "livro-excluir";
+    }
+
+    // POST APAGA
+    @PostMapping("/livros/{id}/excluir")
+    public String excluir(@PathVariable Long id) {
+        if (repositorioLivro.buscarPorId(id) == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+
+        repositorioLivro.excluir(id);
+        return "redirect:/livros/html";
     }
 }
